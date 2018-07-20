@@ -24,29 +24,22 @@ export default class Autolink extends Component {
   onPress(match, alertShown) {
     // Check if alert needs to be shown
     if (this.props.showAlert && !alertShown) {
-      Alert.alert(
-        'Leaving App',
-        'Do you want to continue?',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'OK', onPress: () => this.onPress(match, true) },
-        ],
-      );
+      Alert.alert('Leaving App', 'Do you want to continue?', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'OK', onPress: () => this.onPress(match, true) },
+      ]);
 
       return;
     }
 
     // Get url(s) for match
-    const [
-      url,
-      fallback,
-    ] = this.getUrl(match);
+    const [url, fallback] = this.getUrl(match);
 
     // Call custom onPress handler or open link/fallback
     if (this.props.onPress) {
       this.props.onPress(url, match);
     } else if (this.props.webFallback) {
-      Linking.canOpenURL(url).then((supported) => {
+      Linking.canOpenURL(url).then(supported => {
         Linking.openURL(!supported && fallback ? fallback : url);
       });
     } else {
@@ -56,9 +49,7 @@ export default class Autolink extends Component {
 
   onLongPress(match) {
     // Get url for match
-    const [
-      url,
-    ] = this.getUrl(match);
+    const [url] = this.getUrl(match);
 
     if (this.props.onLongPress) {
       this.props.onLongPress(url, match);
@@ -88,7 +79,16 @@ export default class Autolink extends Component {
         const latlng = match.getLatLng();
         const query = latlng.replace(/\s/g, '');
 
-        return [Platform.OS === 'ios' ? `http://maps.apple.com/?q=${encodeURIComponent(latlng)}&ll=${query}` : `https://www.google.com/maps/search/?api=1&query=${query}`];
+        return [
+          Platform.OS === 'ios'
+            ? `http://maps.apple.com/?q=${encodeURIComponent(latlng)}&ll=${query}`
+            : `https://www.google.com/maps/search/?api=1&query=${query}`,
+        ];
+      }
+      case 'daisiementions': {
+        const mention = match.getDaisieMentions();
+
+        return [`daisie://user?username=${mention}`];
       }
       case 'mention': {
         const mention = match.getMention();
@@ -123,9 +123,10 @@ export default class Autolink extends Component {
   }
 
   renderLink(text, match, index, textProps) {
-    const truncated = (this.props.truncate > 0) ?
-      Autolinker.truncate.TruncateSmart(text, this.props.truncate, this.props.truncateChars) :
-      text;
+    const truncated =
+      this.props.truncate > 0
+        ? Autolinker.truncate.TruncateSmart(text, this.props.truncate, this.props.truncateChars)
+        : text;
 
     return (
       <Text
@@ -148,6 +149,7 @@ export default class Autolink extends Component {
       email,
       hashtag,
       latlng,
+      daisiementions,
       linkStyle,
       mention,
       onPress,
@@ -191,7 +193,7 @@ export default class Autolink extends Component {
         phone,
         urls: url,
         stripPrefix,
-        replaceFn: (match) => {
+        replaceFn: match => {
           const token = generateToken();
 
           matches[token] = match;
@@ -236,22 +238,29 @@ export default class Autolink extends Component {
           case 'email':
           case 'hashtag':
           case 'latlng':
+          case 'daisiementions':
           case 'mention':
           case 'phone':
           case 'url':
-            return (renderLink) ?
-              renderLink(match.getAnchorText(), match, index) :
-              this.renderLink(match.getAnchorText(), match, index, other);
+            return renderLink
+              ? renderLink(match.getAnchorText(), match, index)
+              : this.renderLink(match.getAnchorText(), match, index, other);
           default:
             return part;
         }
       });
 
-    return createElement(Text, {
-      ref: (component) => { this._root = component; }, // eslint-disable-line no-underscore-dangle
-      style,
-      ...other,
-    }, ...nodes);
+    return createElement(
+      Text,
+      {
+        ref: component => {
+          this._root = component;
+        }, // eslint-disable-line no-underscore-dangle
+        style,
+        ...other,
+      },
+      ...nodes,
+    );
   }
 }
 
@@ -259,6 +268,7 @@ Autolink.defaultProps = {
   email: true,
   hashtag: false,
   latlng: false,
+  daisiementions: false,
   mention: false,
   phone: true,
   showAlert: false,
@@ -274,6 +284,7 @@ Autolink.propTypes = {
   email: PropTypes.bool,
   hashtag: PropTypes.oneOf([false, 'instagram', 'twitter']),
   latlng: PropTypes.bool,
+  daisiementions: PropTypes.bool,
   linkStyle: Text.propTypes.style, // eslint-disable-line react/no-typos
   mention: PropTypes.oneOf([false, 'instagram', 'twitter']),
   numberOfLines: PropTypes.number,

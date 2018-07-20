@@ -33,4 +33,27 @@ export default [
       },
     }),
   },
+  {
+    id: 'daisiementions',
+    regex: /@([A-Za-z0-9_]+)/g,
+    Match: Autolinker.Util.extend(Autolinker.match.Match, {
+      constructor(cfg) {
+        Autolinker.match.Match.prototype.constructor.call(this, cfg);
+
+        this.daisiementions = cfg.daisiementions;
+      },
+      getType() {
+        return 'daisiementions';
+      },
+      getDaisieMentions() {
+        return this.daisiementions;
+      },
+      getAnchorHref() {
+        return this.daisiementions;
+      },
+      getAnchorText() {
+        return this.daisiementions;
+      },
+    }),
+  },
 ];
