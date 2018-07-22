@@ -128,8 +128,10 @@ export default class Autolink extends Component {
         ? Autolinker.truncate.TruncateSmart(text, this.props.truncate, this.props.truncateChars)
         : text;
 
+    const TextComponent = this.props.textComponent ? this.props.textComponent : Text;
+
     return (
-      <Text
+      <TextComponent
         {...textProps}
         key={index}
         style={[styles.link, this.props.linkStyle]}
@@ -137,7 +139,7 @@ export default class Autolink extends Component {
         onLongPress={() => this.onLongPress(match)}
       >
         {truncated}
-      </Text>
+      </TextComponent>
     );
   }
 
